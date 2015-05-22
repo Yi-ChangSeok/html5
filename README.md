@@ -176,7 +176,7 @@ store.clear(
 ```
 
 ## Transaction
-기본적으로 한 Scope 에서는 트랙젝션을 보장한다.
+A transaction's scope remains fixed for the lifetime of that transaction.
 
 **Default transaction**
 ```javascript
