@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+.section {
+	margin-bottom: 10px;
+}
+#inpUserKey{
+	width: 30px;
+}
+#taUserList, #taAddUserList {
+	width: 400px;
+	height: 100px;
+}
+#taAddUser, #taModifyUser, #taRemoveUserByObject {
+	width: 400px;
+	height: 20px;
+}
+#inpRemoveUserByKey {
+	width: 30px;
+}
+</style>
+
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+
+<body>
+
+
+<div>
+	<div class="section">
+		<div>
+			<textarea id="taUserList"></textarea>
+		</div>
+		<div>
+			<span>
+				key : <input type="text" id="inpUserKey" value="" />
+			</span>
+			<span>
+				name : <input type="text" id="inpUsername" value="" style="width:50px;" />
+			</span>
+			<span>
+				gte : <input type="text" id="inpGteUserId" value="" style="width:30px;" />
+			</span>
+			<span>
+				lte : <input type="text" id="inpLteUserId" value="" style="width:30px;" />
+			</span>
+			<span>
+				direction :
+				<select id="sctUserListDirection">
+					<option value="next" selected>asc</option>
+					<option value="prev">desc</option>
+				</select>
+			</span>
+		</div>
+		<div>
+			<button id="btnUserList">getData</button>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div>
+			<textarea id="taAddUser">{"userId":30,"name":"bak","age":20}</textarea>
+		</div>
+		<div>
+			<button id="btnAddUser">addData</button>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div>
+			<textarea id="taAddUserList">
+[
+	{"userId":1,"name":"kim","age":21},
+	{"userId":2,"name":"yi","age":57},
+	{"userId":3,"name":"bak","age":45},
+	{"userId":4,"name":"kim","age":15}
+]
+			</textarea>
+		</div>
+		<div>
+			<button id="btnAddUserList">addDataList</button>
+		</div>
+	</div>
+
+	<div class="section">
+		<div>
+			<textarea id="taModifyUser">{"userId":30,"name":"Hong","age":41}</textarea>
+		</div>
+		<div>
+			<button id="btnModifyUser">upsertData</button>
+		</div>
+	</div>
+
+	<div class="section">
+		<div>
+			<input type="text" id="inpRemoveUserByKey" value="30" />
+			<button id="btnRemoveUserByKey">removeData by Key</button>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div>
+			<textarea id="taRemoveUserByObject">{"userId":30,"name":"bak","age":20}</textarea>
+		</div>
+		<div>
+			<button id="btnRemoveUserByObject">removeData by Object</button>
+		</div>
+	</div>
+	
+	<div class="section">
+		<div>
+			<button id="btnRemoveAll">removeAll</button>
+		</div>
+	</div>
+</div>
+
+
+</body>
+
+<script src="../CsIndexedDB.js"></script>
+<script>
+
+var csdb;
+$(function(){
+	csdb = new CsIndexedDB("test", 2, {
+		onsuccess: function(){
+			console.debug("success");
+			reloadUserList();
+		},
+		onerror: function(){
+			console.debug("error");
+		},
+		onversionchange: function(event){
+			//alert(" 이 페이지의 정보가 업데이트 되었습니다. 재접속하거나 새로고침을 해주시기 바랍니다. ");
+		},
+		storeList: [
+			{
+				name: "testOs",
+				options: {keyPath: "userId"}, //{autoIncrement: true}
+				indexList: [
+					//{name: "userId", col: "userId", options: {unique: true}},
+					{name: "name", col: "name", options: {unique: false}}
+				],
+				/*
+				dataList: [
+					{userId: 1, name: "hong", age: 30},
+					{userId: 2, name: "kim", age: 20},
+					{userId: 3, name: "lee", age: 17},
+				]
+				*/
+			},
+			{
+				name: "test",
+				options: {keyPath: "id", autoIncrement: true},
+				indexList: [
+					{name: "id", col: "id", options: {unique: true}},
+					{name: "name", col: "name", options: {unique: false}}
+				],
+			}
+		]
+	});
+	
+	function reloadUserList(){
+		var ta = $("#taUserList")[0];
+		ta.value = "";
+		
+		var key = $("#inpUserKey").val().trim();
+		var name = $("#inpUsername").val().trim();
+		var gte = $("#inpGteUserId").val().trim();
+		var lte = $("#inpLteUserId").val().trim();
+		var direction = $("#sctUserListDirection").val();
+		
+		var store = csdb.getObjectStore("testOs");
+		if(key){
+			store.findByKey(
+					parseInt(key, 10),
+					function(user){
+						ta.value += JSON.stringify(user) + "\r\n";
+					}
+				);
+		}else{
+			store.find(
+				{
+					index: (name ? "name" : null),
+					only: (name ? name : null),
+					direction: direction,
+					lower: (gte ? parseInt(gte) : null),
+					excludeLower: false,
+					upper: (lte ? parseInt(lte) : null),
+					excludeUpper: false,
+				},
+				function(user, idx){
+					if(!user){
+						return;
+					}
+					ta.value += idx + " : " + JSON.stringify(user) + "\r\n";
+				}
+			);
+		}
+	}
+	
+	$("#btnUserList").on("click", function(){
+		reloadUserList();
+	});
+	
+	$("#btnAddUser").on("click", function(){
+		var ta = $("#taAddUser");
+		var store = csdb.getObjectStore("testOs");
+		store.add(
+			JSON.parse(ta.val()),
+			function(event){
+				//alert("success");
+				reloadUserList();
+			},
+			function(event){
+				alert("error\r\n["+event.target.error.name+"] " + event.target.error.message);
+			}
+		);
+	});
+	
+	$("#btnAddUserList").on("click", function(){
+		var ta = $("#taAddUserList");
+		var store = csdb.getObjectStore("testOs");
+		store.add(
+			JSON.parse(ta.val()),
+			function(event){
+				//alert("success");
+				reloadUserList();
+			},
+			function(event){
+				alert("error\r\n["+event.target.error.name+"] " + event.target.error.message);
+			}
+		);
+	});
+	
+	$("#btnModifyUser").on("click", function(){
+		var ta = $("#taModifyUser");
+		var store = csdb.getObjectStore("testOs");
+		store.upsert(
+			JSON.parse(ta.val()),
+			function(event){
+				//alert("success");
+				reloadUserList();
+			},
+			function(event){
+				alert("error\r\n["+event.target.error.name+"] " + event.target.error.message);
+			}
+		);
+	});
+	
+	$("#btnRemoveUserByKey").on("click", function(){
+		var key = $("#inpRemoveUserByKey").val().trim();
+		var store = csdb.getObjectStore("testOs");
+		store.remove(
+			parseInt(key, 10),
+			function(event){
+				//alert("success");
+				reloadUserList();
+			},
+			function(event){
+				alert("error\r\n["+event.target.error.name+"] " + event.target.error.message);
+			}
+		);
+	});
+	
+	$("#btnRemoveUserByObject").on("click", function(){
+		var obj = JSON.parse( $("#taRemoveUserByObject").val().trim() );
+		var store = csdb.getObjectStore("testOs");
+		store.remove(
+			obj,
+			function(event){
+				//alert("success");
+				reloadUserList();
+			},
+			function(event){
+				alert("error\r\n["+event.target.error.name+"] " + event.target.error.message);
+			}
+		);
+	});
+	
+	$("#btnRemoveAll").on("click", function(){
+		var store = csdb.getObjectStore("testOs");
+		store.clear(
+			function(event){
+				//alert("success");
+				reloadUserList();
+			},
+			function(event){
+				alert("error\r\n["+event.target.error.name+"] " + event.target.error.message);
+			}
+		);
+	});
+
+</script>
+
+</html>
