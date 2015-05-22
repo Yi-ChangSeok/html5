@@ -20,7 +20,7 @@ CsIndexedDB works on all browsers supporting the [IndexedDB API](http://www.w3.o
 
 Including the CsIndexedDB.js file will add an CsIndexedDB constructor to the global scope.
 
-## Create
+## Database
 
 **Create DB**
 ```javascript
@@ -57,6 +57,17 @@ var csdb = new CsIndexedDB(
 	);
 ```
 
+**close DB**
+```javascript
+csdb.close();
+```
+
+**delete DB**
+```javascript
+csdb.deleteDB();
+```
+
+## ObjectStore
 **Get CsObjectStore**
 ```javascript
 var store = csdb.getObjectStore("testOs");
