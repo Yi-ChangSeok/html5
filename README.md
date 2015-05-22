@@ -36,7 +36,7 @@ var csdb = new CsIndexedDB(
 				console.debug("error");
 			},
 			onversionchange: function(event){
-				// db update
+				// db version update
 			},
 			// init create or version change
 			storeList: [
@@ -178,7 +178,7 @@ store.clear(
 ## Transaction
 기본적으로 한 Scope 에서는 트랙젝션을 보장한다.
 
-**One transaction**
+**Default transaction**
 ```javascript
 [
 	{userId: 10, name: "ycs", age: 30},
@@ -188,6 +188,22 @@ store.clear(
 	store.add(data);
 });
 store.upsert({userId: 2, name: "mina", age: 22})
+```
+
+**One transaction**
+```javascript
+[
+	{userId: 1, name: "ycs", age: 30},
+	{userId: 31, name: "pkj", age: 20},
+	{userId: 32, name: "park", age: 17},
+].forEach(function(data){
+	store.runTransaction(
+		function(){
+			store.add(data);
+		}
+		/*oncomplete, onerror*/
+	);
+});
 ```
 
 **Abort(Rollback) transaction**
