@@ -209,7 +209,7 @@ store.upsert({userId: 2, name: "mina", age: 22})
 **Abort(Rollback) transaction**
 ```javascript
 function error(){
-	throw e;
+	throw "error";
 }
 
 try{
