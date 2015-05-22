@@ -1,4 +1,4 @@
-// Last time updated : 2015.05.22 14:30
+// Last time updated : Fri May 22 2015 14:50:25 GMT+0900
 
 /**
  * CsIndexedDB v0.1b
@@ -191,12 +191,8 @@
 			return csDb;
 		}
 		this.getDb = function(){
-			//return db;
 			return csDb.getDb();
 		}
-//		this.getObjectStore = function(){
-//			return objectStore;
-//		}
 
 		// TODO
 		if(!db){
@@ -247,7 +243,7 @@
 		}
 		
 		// mode:readonly(default), readwrite, versionchange
-		tx = THIS.current.transaction = THIS.getDb().transaction([THIS.getStoreName()], mode);
+		tx = THIS.current.transaction = THIS.getDb().transaction([THIS.getStoreName()], mode||"readonly");
 		store = THIS.current.store = tx.objectStore(THIS.getStoreName());
 		
 		tx.addEventListener("complete", function(event){
@@ -276,6 +272,15 @@
 		});
 		
 		return store;
+	}
+	
+	CsObjectStore.prototype.abortTransaction = function(){
+		var THIS = this;
+		
+		var tx = THIS.current.transaction;
+		tx.abort();
+		
+		return THIS;
 	}
 	
 	CsObjectStore.prototype.endTransaction = function(){
@@ -310,24 +315,7 @@
 		var lower = options.lower != undefined;
 		var upper = options.upper != undefined;
 
-		/*
-		// Only match "Donna"
-		var singleKeyRange = IDBKeyRange.only("Donna");
-
-		// Match anything past "Bill", including "Bill"
-		var lowerBoundKeyRange = IDBKeyRange.lowerBound("Bill");
-
-		// Match anything past "Bill", but don't include "Bill"
-		var lowerBoundOpenKeyRange = IDBKeyRange.lowerBound("Bill", true);
-
-		// Match anything up to, but not including, "Donna"
-		var upperBoundOpenKeyRange = IDBKeyRange.upperBound("Donna", true);
-
-		//Match anything between "Bill" and "Donna", but not including "Donna"
-		var boundKeyRange = IDBKeyRange.bound("Bill", "Donna", false, true);
-		*/
-		
-		var kr;
+		var kr = null;
 		if(only){
 			kr = IDBKeyRange.only(options.only);
 		}else if(lower && upper){
@@ -350,7 +338,7 @@
 				direction: "next", // 'next', 'nextunique', 'prev', or 'prevunique'
 			}, options);
 			
-			var keyRange
+			var keyRange;
 			if(options.index){
 				store = store.index(options.index);
 			}
@@ -366,7 +354,6 @@
 			
 			var cnt = 0;
 			req.onsuccess = function(event){
-				//onsuccess(req.result);
 				var cursor = event.target.result;
 				if(cursor){
 					var data = cursor.value;
@@ -397,7 +384,7 @@
 				if(onerror)
 					onerror.call(THIS, event);
 				else
-					console.error("findByIndex error :", event);
+					console.error("find error :", event);
 			}
 		}catch(e){
 			if(onerror)
@@ -495,16 +482,21 @@
 			store.put(data);
 		}
 		
-		store.transaction.addEventListener("complete", function(event){
+		var tx = store.transaction;
+		tx.addEventListener("complete", function(event){
 			if(oncomplete){
 				oncomplete.call(THIS, event, data);
 			}
-		});
-		store.transaction.addEventListener("error", function(event){
+		})
+		tx.addEventListener("abort", function(event){
 			if(onerror){
 				onerror.call(THIS, event);
 			}else{
-				console.error("modify error :", event);
+				var msg = "";
+				if(tx.error){
+					msg = "["+tx.error.name+"] "+tx.error.message;
+				}
+				console.error("upsert error :", msg, "\r\n", event);
 			}
 		});
 		
@@ -607,12 +599,12 @@
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 
-	var old_2 = window.CsIndexedDB;
+	var old = window.CsIndexedDB;
 
 	window.CsIndexedDB = CsIndexedDB;
 
 	CsIndexedDB.noConflict = function(){
-		window.CsIndexedDB = old_2;
+		window.CsIndexedDB = old;
 		return this;
 	}
 }();
