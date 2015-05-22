@@ -27,7 +27,7 @@
 </style>
 
 <!-- jQuery -->
-<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 </head>
 
 <body>
@@ -147,7 +147,7 @@ $(function(){
 				indexList: [
 					//{name: "userId", col: "userId", options: {unique: true}},
 					{name: "name", col: "name", options: {unique: false}}
-				],
+				]
 				/*
 				dataList: [
 					{userId: 1, name: "hong", age: 30},
@@ -162,7 +162,7 @@ $(function(){
 				indexList: [
 					{name: "id", col: "id", options: {unique: true}},
 					{name: "name", col: "name", options: {unique: false}}
-				],
+				]
 			}
 		]
 	});
@@ -194,7 +194,7 @@ $(function(){
 					lower: (gte ? parseInt(gte) : null),
 					excludeLower: false,
 					upper: (lte ? parseInt(lte) : null),
-					excludeUpper: false,
+					excludeUpper: false
 				},
 				function(user, idx){
 					if(!user){
@@ -297,7 +297,7 @@ $(function(){
 			}
 		);
 	});
-
+});
 </script>
 
 </html>
