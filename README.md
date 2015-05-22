@@ -176,6 +176,7 @@ store.clear(
 ].forEach(function(data){
 	store.add(data);
 });
+store.upsert({userId: 2, name: "mina", age: 22})
 ```
 
 **Abort(Rollback) transaction**
