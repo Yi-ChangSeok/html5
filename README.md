@@ -26,7 +26,7 @@ Including the CsIndexedDB.js file will add an CsIndexedDB constructor to the glo
 ```javascript
 var csdb = new CsIndexedDB(
 		"test", // db name
-		null, // dbVersion : null or Number
+		"lastest", // dbVersion : "lastest" or VersionNumber
 		{
 			onsuccess: function(){
 				console.debug("success");

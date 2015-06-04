@@ -52,6 +52,9 @@
 
 		function open(){
 			console.debug("# CsIndexedDB open start : name["+dbName+"]", "version["+(dbVersion||"lastest")+"]");
+			if(dbVersion=="lastest"){
+				dbVersion = null;
+			}
 			req = (dbVersion ? indexedDB.open(dbName, dbVersion) : indexedDB.open(dbName));
 
 			req.onerror = function(event){
